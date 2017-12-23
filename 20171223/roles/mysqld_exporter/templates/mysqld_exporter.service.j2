@@ -1,0 +1,16 @@
+# {{ ansible_managed }}
+[Unit]
+Description=MySQLd Exporter
+
+[Service]
+User=mysqld_exporter
+Group=mysqld_exporter
+ExecStart={{ mysqld_exporter_home }}/bin/mysqld_exporter \
+  -config.my-cnf {{ mysqld_exporter_home }}/etc/my.cnf \
+{% for item in mysqld_exporter_collect_flags %}
+  -collect.{{ item }} true \
+{% endfor %}
+  -web.listen-address ":{{ mysqld_exporter_port }}"
+
+[Install]
+WantedBy=multi-user.target

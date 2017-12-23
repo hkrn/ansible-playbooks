@@ -1,0 +1,106 @@
+---
+- name: create mysql group
+  group:
+    name: "{{ mysql_group_name }}"
+    gid: "{{ mysql_group_gid }}"
+    state: present
+
+- name: create mysql user
+  user:
+    name: "{{ mysql_user_name }}"
+    uid: "{{ mysql_user_uid }}"
+    group: "{{ mysql_group_name }}"
+    shell: /bin/false
+    createhome: no
+    state: present
+
+- name: fetch yum repository
+  yum:
+    name: "{{ mysql_rpm_url }}"
+
+- name: remove mariadb library due to confliction
+  yum:
+    name: mariadb-libs
+    state: absent
+
+- name: install mysql packages
+  yum:
+    name: "{{ item }}"
+    state: installed
+  with_items:
+    - mysql-community-client
+    - mysql-community-libs
+    - mysql-community-libs-compat
+    - mysql-community-server
+    - MySQL-python
+
+- name: check mysql database is initialized
+  find:
+    paths: /var/lib/mysql
+  register: mysql_database_directory
+
+- name: set initialization state
+  set_fact:
+    mysql_has_been_initialized: "{{ mysql_database_directory.files | length > 0 }}"
+
+- name: deploy server my.cnf
+  template:
+    src: server-my.cnf.j2
+    dest: /etc/my.cnf
+    mode: 0600
+    owner: mysql
+    group: mysql
+  notify: restart mysql
+
+- name: ensure mysql database initialized
+  shell: mysqld --user=mysql --initialize-insecure
+  when: 'not mysql_has_been_initialized'
+
+- name: start mysql server
+  systemd:
+    name: mysqld.service
+    state: started
+    daemon_reload: yes
+
+- name: change root user password
+  mysql_user:
+    name: root
+    password: "{{ mysql_root_password }}"
+    state: present
+    login_host: localhost
+    login_user: root
+    host_all: yes
+  when: 'not mysql_has_been_initialized'
+
+- name: deploy client my.cnf for current user
+  template:
+    src: client-my.cnf.j2
+    dest: "/home/{{ ansible_user }}/.my.cnf"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0600
+
+- name: deploy client my.cnf for root user
+  template:
+    src: client-my.cnf.j2
+    dest: "/root/.my.cnf"
+    owner: root
+    group: root
+    mode: 0600
+
+- include: master.yml
+  when: '"mysql-master" in group_names'
+
+- include: replica.yml
+  when: '"mysql-replica" in group_names'
+
+- name: create mysqld_exporter user
+  mysql_user:
+    name: "{{ mysqld_exporter_mysql_user }}"
+    password: "{{ mysqld_exporter_mysql_password }}"
+    host: "{{ item }}"
+    priv: '*.*:PROCESS,REPLICATION CLIENT,SELECT'
+    state: present
+  with_items:
+    - 127.0.0.1
+    - localhost

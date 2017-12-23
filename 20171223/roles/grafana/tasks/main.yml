@@ -1,0 +1,61 @@
+---
+- name: create grafana group
+  group:
+    name: "{{ grafana_group_name }}"
+    gid: "{{ grafana_group_gid }}"
+    state: present
+
+- name: create grafana user
+  user:
+    name: "{{ grafana_user_name }}"
+    uid: "{{ grafana_user_uid }}"
+    group: "{{ grafana_group_name }}"
+    shell: /bin/false
+    createhome: no
+    state: present
+
+- name: fetch grafana repository
+  yum:
+    name: "{{ grafana_rpm_url }}"
+    state: installed
+
+- name: deploy grafana.ini
+  template:
+    src: grafana.ini.j2
+    dest: "{{ grafana_ini_path }}"
+    owner: "{{ grafana_user_name }}"
+    group: "{{ grafana_group_name }}"
+    mode: 0600
+  notify: restart grafana
+
+- name: install git
+  yum:
+    name: git
+    state: installed
+
+- name: clone percona dashboard
+  git:
+    repo: https://github.com/percona/grafana-dashboards.git
+    dest: /var/tmp/grafana-dashboards
+    version: "{{ percona_grafana_dashboard_version }}"
+  notify: restart grafana
+
+- name: create dashboards directory
+  file:
+    path: "{{ grafana_config_paths_data }}/dashboards"
+    state: directory
+    owner: "{{ grafana_user_name }}"
+    group: "{{ grafana_group_name }}"
+    mode: 0755
+
+- name: copy percona dashboard
+  copy:
+    src: "/var/tmp/grafana-dashboards/dashboards/{{ item }}"
+    dest: "{{ grafana_config_paths_data }}/dashboards"
+    remote_src: yes
+  with_items: "{{ percona_grafana_dashboard_enabled }}"
+
+- name: start grafana
+  service:
+    name: grafana-server
+    state: started

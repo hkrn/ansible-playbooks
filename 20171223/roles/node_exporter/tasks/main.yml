@@ -1,0 +1,61 @@
+---
+- name: create node_exporter group
+  group:
+    name: "{{ node_exporter_group_name }}"
+    gid: "{{ node_exporter_group_gid }}"
+    state: present
+
+- name: create node_exporter user
+  user:
+    name: "{{ node_exporter_user_name }}"
+    uid: "{{ node_exporter_user_uid }}"
+    group: "{{ node_exporter_group_name }}"
+    shell: /bin/false
+    createhome: no
+    state: present
+
+- name: download node_exporter
+  get_url:
+    url: "{{ node_exporter_download_url }}"
+    dest: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+
+- name: extract prometheus
+  unarchive:
+    src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+    dest: /var/tmp
+    remote_src: yes
+
+- name: create node_exporter directories
+  file:
+    path: "{{ node_exporter_home }}/{{ item.name }}"
+    state: directory
+    owner: "{{ node_exporter_user_name }}"
+    group: "{{ node_exporter_group_name }}"
+    mode: "{{ item.mode }}"
+  with_items:
+    - { name: "", mode: "0755" }
+    - { name: "bin", mode: "0755" }
+    - { name: "data", mode: "0700" }
+    - { name: "etc", mode: "0700" }
+
+- name: copy node_exporter binaries
+  copy:
+    src: "/var/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/{{ item }}"
+    dest: "{{ node_exporter_home }}/bin/{{ item }}"
+    owner: "{{ node_exporter_user_name }}"
+    group: "{{ node_exporter_group_name }}"
+    mode: "0755"
+    remote_src: yes
+  with_items:
+    - node_exporter
+
+- name: put service file
+  template:
+    src: node_exporter.service.j2
+    dest: /etc/systemd/system/node_exporter.service
+  notify: restart node_exporter
+
+- name: node_exporter is started
+  systemd:
+    name: node_exporter
+    state: started

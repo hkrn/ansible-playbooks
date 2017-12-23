@@ -1,0 +1,38 @@
+- name: create instance
+  gce:
+    instance_names: "{{ outer_item.name }}"
+    zone: "{{ gce_zone }}"
+    network: "{{ outer_item.network | default('default') }}"
+    machine_type: "{{ gce_machine_type }}"
+    image: centos-7
+    state: present
+    service_account_email: "{{ gce_service_account_email }}"
+    credentials_file: "{{ gce_credentials_file }}"
+    project_id: "{{ gce_project_id }}"
+    preemptible: "{{ gce_preemptible }}"
+  register: gce
+
+- name: start instance
+  gce:
+    instance_names: "{{ outer_item.name }}"
+    zone: "{{ gce_zone }}"
+    state: started
+    service_account_email: "{{ gce_service_account_email }}"
+    credentials_file: "{{ gce_credentials_file }}"
+    project_id: "{{ gce_project_id }}"
+
+- name: add host
+  add_host:
+    name: "{{ gce.instance_data[0].public_ip }}"
+    groups: "{{ outer_item.role_group }}"
+    mysql_replication_mapping: "{{ mysql_replication_mapping }}"
+    mysql_server_id: "{{ gce.instance_data[0].public_ip | ipaddr('int') }}"
+    gce: "{{ gce.instance_data[0] }}"
+
+- name: wait for ssh
+  wait_for:
+    delay: 1
+    host: "{{ gce.instance_data[0].public_ip }}"
+    port: 22
+    state: started
+    timeout: 60

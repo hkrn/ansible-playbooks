@@ -1,0 +1,20 @@
+---
+- name: configure GCE firewall
+  gce_net:
+    name: default
+    fwname: "{{ item.fwname }}"
+    allowed: "{{ item.allowed }}"
+    ipv4_range: "{{ item.ipv4_range }}"
+    state: present
+    service_account_email: "{{ gce_service_account_email }}"
+    credentials_file: "{{ gce_credentials_file }}"
+    project_id: "{{ gce_project_id }}"
+  with_items:
+    - { fwname: "grafana", allowed: "tcp:{{ grafana_port }}", ipv4_range: "0.0.0.0/0" }
+    - { fwname: "prometheus", allowed: "tcp:{{ prometheus_port }}", ipv4_range: "0.0.0.0/0" }
+
+- name: create all GCE instances
+  include_tasks: create.yml
+  with_items: "{{ gce_instances }}" 
+  loop_control:
+    loop_var: outer_item

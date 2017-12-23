@@ -1,0 +1,29 @@
+---
+- name: stop replication
+  mysql_replication:
+    mode: stopslave
+
+- name: get master hostname
+  set_fact:
+    master_hostname: "{{ (mysql_replication_mapping | selectattr('replica', 'equalto', gce.name) | first)['master'] }}"
+
+- name: get replication master status
+  mysql_replication:
+    mode: getmaster
+    login_host: "{{ master_hostname }}"
+    login_user: repl
+    login_password: "{{ mysql_repl_password }}"
+  register: replication_master_info
+
+- name: change replication master
+  mysql_replication:
+    mode: changemaster
+    master_host: "{{ master_hostname }}"
+    master_log_file: "{{ replication_master_info.File }}"
+    master_log_pos: "{{ replication_master_info.Position }}"
+    master_user: repl
+    master_password: "{{ mysql_repl_password }}"
+
+- name: start replication
+  mysql_replication:
+    mode: startslave

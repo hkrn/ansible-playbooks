@@ -1,0 +1,5 @@
+# {{ ansible_managed }}
+127.0.0.1 localhost
+{% for item in groups.all %}
+{{ hostvars[item].gce.private_ip }} {{ hostvars[item].gce.name }}
+{% endfor %}

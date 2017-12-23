@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Prometheus
+
+[Service]
+User=prometheus
+Group=prometheus
+ExecStart={{ prometheus_home }}/bin/prometheus \
+  --config.file={{ prometheus_home }}/etc/config.yml \
+  --storage.tsdb.path={{ prometheus_home }}/data \
+  --storage.tsdb.retention={{ prometheus_retention }} \
+  --web.listen-address=0.0.0.0:{{ prometheus_port }}
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,20 @@
+grafana_version: 4.6.2-1
+grafana_rpm_url: "https://s3-us-west-2.amazonaws.com/grafana-releases/release/grafana-{{ grafana_version }}.x86_64.rpm"
+grafana_ini_path: /etc/grafana/grafana.ini
+grafana_config_paths_data: /var/lib/grafana
+grafana_config_paths_logs: /var/log/grafana
+
+percona_grafana_dashboard_version: v1.5.2
+percona_grafana_dashboard_enabled:
+  - Cross_Server_Graphs.json
+  - Disk_Performance.json
+  - Disk_Space.json
+  - MySQL_InnoDB_Metrics.json
+  - MySQL_InnoDB_Metrics_Advanced.json
+  - MySQL_Overview.json
+  - MySQL_Performance_Schema.json
+  - MySQL_Replication.json
+  - MySQL_Table_Statistics.json
+  - Prometheus.json
+  - Summary_Dashboard.json
+  - System_Overview.json

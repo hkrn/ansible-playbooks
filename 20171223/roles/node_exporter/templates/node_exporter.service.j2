@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Node Exporter
+
+[Service]
+User=node_exporter
+Group=node_exporter
+ExecStart={{ node_exporter_home }}/bin/node_exporter \
+{% for item in node_exporter_collect_flags %}
+  --collector.{{ item }} \
+{% endfor %}
+  --web.listen-address ":{{ node_exporter_port }}"
+
+[Install]
+WantedBy=multi-user.target

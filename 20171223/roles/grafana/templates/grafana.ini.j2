@@ -1,0 +1,13 @@
+[server]
+http_port = {{ grafana_port }}
+
+[paths]
+data = {{ grafana_config_paths_data }}
+logs = {{ grafana_config_paths_logs }}
+
+[auth.anonymous]
+enabled = true
+
+[dashboards.json]
+enabled = true
+path = /var/lib/grafana/dashboards

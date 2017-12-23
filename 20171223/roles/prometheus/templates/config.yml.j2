@@ -1,0 +1,31 @@
+# {{ ansible_managed }}
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: [ 'localhost:{{ prometheus_port }}' ]
+        labels:
+          instance: prometheus
+  - job_name: linux
+    static_configs:
+{% for item in groups['all'] %}
+      - targets: [ '{{ hostvars[item].gce.private_ip }}:{{ node_exporter_port }}' ]
+        labels:
+          instance: {{ hostvars[item].gce.name }}
+{% endfor %}
+    params:
+      collect[]:
+{% for item in node_exporter_collect_flags %}
+        - {{ item }}
+{% endfor %}
+  - job_name: mysql
+    static_configs:
+{% for item in groups['mysql'] %}
+      - targets: [ '{{ hostvars[item].gce.private_ip }}:{{ mysqld_exporter_port }}' ]
+        labels:
+          instance: {{ hostvars[item].gce.name }}
+{% endfor %}
+    params:
+      collect[]:
+{% for item in mysqld_exporter_collect_flags %}
+        - {{ item }}
+{% endfor %}

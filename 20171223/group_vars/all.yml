@@ -1,0 +1,72 @@
+mysql_user_uid: 10000
+mysql_group_gid: 10000
+mysql_user_name: mysql
+mysql_group_name: mysql
+mysql_replication_mapping:
+  - master: gce-mysql-master01
+    replica: gce-mysql-replica01
+
+prometheus_user_uid: 20000
+prometheus_group_gid: 20000
+prometheus_user_name: prometheus
+prometheus_group_name: prometheus
+prometheus_port: 9090
+
+node_exporter_user_uid: 20001
+node_exporter_group_gid: 20001
+node_exporter_user_name: node_exporter
+node_exporter_group_name: node_exporter
+node_exporter_port: 9100
+node_exporter_collect_flags:
+  - diskstats
+  - filefd
+  - filesystem
+  - loadavg
+  - meminfo
+  - netdev
+  - stat
+  - time
+  - uname
+  - vmstat
+
+mysqld_exporter_user_uid: 20002
+mysqld_exporter_group_gid: 20002
+mysqld_exporter_user_name: mysqld_exporter
+mysqld_exporter_group_name: mysqld_exporter
+mysqld_exporter_mysql_user: mysqld_exporter
+mysqld_exporter_mysql_password: mysqld_exporter
+mysqld_exporter_port: 9104
+mysqld_exporter_collect_flags:
+  - binlog_size
+  - engine_innodb_status
+  - global_status
+  - global_variables
+  - info_schema.innodb_metrics
+  - info_schema.innodb_tablespaces
+  - info_schema.processlist
+  - info_schema.query_response_time
+  - info_schema.tables
+  - info_schema.tables.databases
+  - perf_schema.eventsstatements
+  - perf_schema.eventswaits
+  - perf_schema.file_events
+  - perf_schema.file_instances
+  - perf_schema.indexiowaits
+  - perf_schema.tableiowaits
+  - perf_schema.tablelocks
+  - slave_status
+  - heartbeat
+
+grafana_user_uid: 21000
+grafana_group_gid: 21000
+grafana_user_name: grafana
+grafana_group_name: grafana
+grafana_port: 3000
+
+gce_instances:
+  - name: gce-mysql-master01
+    role_group: [ mysql, mysql-master ]
+  - name: gce-mysql-replica01
+    role_group: [ mysql, mysql-replica ]
+  - name: gce-mysql-monitor01
+    role_group: monitor
