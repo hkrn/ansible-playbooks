@@ -3,6 +3,8 @@ grafana_rpm_url: "https://s3-us-west-2.amazonaws.com/grafana-releases/release/gr
 grafana_ini_path: /etc/grafana/grafana.ini
 grafana_config_paths_data: /var/lib/grafana
 grafana_config_paths_logs: /var/log/grafana
+grafana_admin_username: admin
+grafana_admin_password: admin
 
 percona_grafana_dashboard_version: v1.5.2
 percona_grafana_dashboard_enabled:

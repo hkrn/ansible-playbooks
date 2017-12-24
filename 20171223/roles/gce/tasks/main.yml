@@ -11,7 +11,7 @@
     project_id: "{{ gce_project_id }}"
   with_items:
     - { fwname: "grafana", allowed: "tcp:{{ grafana_port }}", ipv4_range: "0.0.0.0/0" }
-    - { fwname: "prometheus", allowed: "tcp:{{ prometheus_port }}", ipv4_range: "0.0.0.0/0" }
+    # - { fwname: "prometheus", allowed: "tcp:{{ prometheus_port }}", ipv4_range: "0.0.0.0/0" }
 
 - name: create all GCE instances
   include_tasks: create.yml

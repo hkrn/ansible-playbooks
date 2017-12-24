@@ -59,3 +59,30 @@
   service:
     name: grafana-server
     state: started
+
+- name: check datasource exists
+  uri:
+    url: http://localhost:3000/api/datasources/name/Prometheus
+    user: "{{ grafana_admin_username }}"
+    password: "{{ grafana_admin_password }}"
+    force_basic_auth: yes
+  register: result
+  failed_when: false
+  changed_when: false
+
+- name: add prometheus datasource
+  uri:
+    url: http://localhost:3000/api/datasources
+    method: POST
+    body:
+      name: Prometheus
+      type: prometheus
+      url: http://localhost:9090
+      access: proxy
+      isDefault: true
+    body_format: json
+    user: "{{ grafana_admin_username }}"
+    password: "{{ grafana_admin_password }}"
+    force_basic_auth: yes
+  delegate_to: "{{ inventory_hostname }}"
+  when: result.status == 404
